@@ -1,0 +1,138 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="google-site-verification" content="" />
+  
+  <title>再看KVC</title>
+  <meta name="author" content="John Doe">
+   <meta name="description" content="已经做了一年多的iOS开发，做项目的时候经常使用KVC，今天抽闲来总结一下。
+KVC（Key-Value Coding）是一套基于NSKeyValueCoding非正式协议的机制，对象可以通过他间接的访问他们的属性。OK，其实话说到这个地方，咱们就来了个初步理解，苹果给出定义就是明确指出，KVC就是">
+  
+
+  <meta property="og:title" content="再看KVC"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta property="og:site_name" content="轩辕慧闯的博客"/>
+ <meta property="og:image" content="undefined"/>
+  
+  <link href="/apple-touch-icon-precomposed.png" sizes="180x180" rel="apple-touch-icon-precomposed">
+  <link rel="alternate" href="/atom.xml" title="轩辕慧闯的博客" type="application/atom+xml">
+  <link rel="stylesheet" href="//cdn.bootcss.com/bootstrap/3.3.6/css/bootstrap.min.css">
+  <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.5.0/css/font-awesome.min.css">
+  <link rel="stylesheet" href="/css/m.min.css">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+</head>
+
+<body>
+  <a id="top"></a>
+  <div id='wx_pic' style='display:none;'><img src='/wx_share.png'/></div>
+  <div id="main">
+    <div class="behind">
+      <div class="back">
+        <a href="/" class="black-color"><i class="fa fa-times" aria-hidden="true"></i></a>
+      </div>
+      <div class="description">
+        &nbsp;
+      </div>
+    </div>
+    <div class="container">
+      
+
+  <article class="standard post">
+    <div class="title">
+      
+  
+    <h1 class="page-title center">
+        再看KVC
+    </h1>
+  
+
+
+    </div>
+    <div class="meta center">
+      
+<time datetime="2017-04-24T10:19:10.000Z">
+  <i class="fa fa-calendar"></i>&nbsp;
+  2017-04-24
+</time>
+
+
+
+
+
+
+
+    </div>
+    <hr>
+    <div class="picture-container">
+      
+    </div>
+    <p>已经做了一年多的iOS开发，做项目的时候经常使用KVC，今天抽闲来总结一下。</p>
+<p>KVC（Key-Value Coding）是一套基于NSKeyValueCoding非正式协议的机制，对象可以通过他间接的访问他们的属性。OK，其实话说到这个地方，咱们就来了个初步理解，苹果给出定义就是明确指出，KVC就是用来的访问对象属性。</p>
+<p>说道面向对象过程中对象的访问控制，大家一定会想到get，set方法。没错，就我个人的理解而言，就访问控制这一点，他们的作用是一样的。然而通常我们会出重写set，get方法来实现对对象的属性的访问控制。这里说明一下，通过set，get方法我们可以直接访问对象的属性。</p>
+<p>其实接下来就是我想探究的一个问题，set，get与KVC道理有着什么联系那</p>
+<p>咱们通过一个简单的例子：<br><figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">@property</span> (<span class="keyword">nonatomic</span>, <span class="keyword">copy</span>) <span class="built_in">NSString</span> *computer;</div><div class="line"></div><div class="line"><span class="comment">// over write set method</span></div><div class="line">- (<span class="keyword">void</span>)setComputer:(<span class="built_in">NSString</span> *)computer &#123;</div><div class="line">    <span class="built_in">NSLog</span>(<span class="string">@"@Property生成了set方法"</span>);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">// over write setValue:forKey: method</span></div><div class="line">- (<span class="keyword">void</span>)setValue:(<span class="keyword">id</span>)value forKey:(<span class="built_in">NSString</span> *)key &#123;</div><div class="line">    [<span class="keyword">super</span> setValue:value forKey:key];</div><div class="line">    <span class="built_in">NSLog</span>(<span class="string">@"调用属性的key-%@方法，会调用这里得分方法"</span>, key);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>接下来我们一块做两个小测试：<br>首先我们通过点语法赋值，默认这时会调用set方法，这个时候我们发现KVC的方法并没有执行。也就是说,我们通过set，get方法访问属性时，并不会走KVC机制，当然，我们可以理解为既然我们可以直接对属性进行访问，当然也就没要走间接那条路。你要是这样想，接下来就会出现坑爹的一幕。当我们使用KVC机制对属性访问时首先会调用set，get方法，然后才走的KVC那套机制。综上可以得出一个结论：set，get方法并没有对KVC有什么依赖。KVC机制也会走set，get那一套。</p>
+<p>提醒一下：当我们使用property声明属性时，xcode会帮自动生成set和get方法。</p>
+
+
+  </article>
+  </script>
+    <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js">
+  </script>
+  <div class="busuanzi center">
+    page PV:&nbsp;<span id="busuanzi_value_page_pv"></span>&nbsp;・&nbsp;
+    site PV:&nbsp;<span id="busuanzi_value_site_pv"></span>&nbsp;・&nbsp;
+    site UV:&nbsp;<span id="busuanzi_value_site_uv"></span>
+  </div>
+
+
+
+
+    </div>
+  </div>
+  <footer class="page-footer"><div class="clearfix">
+</div>
+<div class="right-foot container">
+    <div class="firstrow">
+        <a href="#top" target="_self">
+        <i class="fa fa-arrow-right"></i>
+        </a>
+        © SteveU  2017-2017
+    </div>
+    <div class="secondrow">
+        <a href="https://github.com/gaoryrt/hexo-theme-pln">
+        Theme Pln
+        </a>
+    </div>
+</div>
+<div class="clearfix">
+</div>
+</footer>
+  <script src="//cdn.bootcss.com/jquery/2.2.1/jquery.min.js"></script>
+<script src="/js/search.js"></script>
+<script type="text/javascript">
+
+// disqus scripts
+
+
+// dropdown scripts
+$(".dropdown").click(function(event) {
+  var current = $(this);
+  event.stopPropagation();
+  $(current).children(".dropdown-content")[($(current).children(".dropdown-content").hasClass("open"))?'removeClass':'addClass']("open")
+});
+$(document).click(function(){
+    $(".dropdown-content").removeClass("open");
+})
+
+var path = "/search.xml";
+searchFunc(path, 'local-search-input', 'local-search-result');
+
+</script>
+
+</body>
+</html>
